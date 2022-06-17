@@ -90,18 +90,11 @@ function Tooltip(props: DTooltipProps, ref: React.ForwardedRef<DTooltipRef>) {
   const containerEl = useElement(
     isUndefined(dContainer) || dContainer === false
       ? () => {
-          if (isUndefined(dContainer)) {
-            let el = document.getElementById(`${dPrefix}tooltip-root`);
-            if (!el) {
-              el = document.createElement('div');
-              el.id = `${dPrefix}tooltip-root`;
-              document.body.appendChild(el);
-            }
-            return el;
-          } else {
+          if (dContainer === false) {
             const triggerEl = document.querySelector(`[aria-describedby="${_id}"]`) as HTMLElement | null;
             return triggerEl?.parentElement ?? null;
           }
+          return null;
         }
       : dContainer
   );
@@ -115,11 +108,11 @@ function Tooltip(props: DTooltipProps, ref: React.ForwardedRef<DTooltipRef>) {
   const updatePosition = useEventCallback(() => {
     const triggerEl = document.querySelector(`[aria-describedby="${_id}"]`) as HTMLElement | null;
 
-    if (popupRef.current && triggerEl && containerEl) {
+    if (popupRef.current && triggerEl) {
       let currentPlacement = dPlacement;
 
       let space: [number, number, number, number] = [0, 0, 0, 0];
-      if (!isFixed) {
+      if (!isFixed && containerEl) {
         const containerRect = containerEl.getBoundingClientRect();
         space = [
           containerRect.top,
@@ -274,28 +267,28 @@ function Tooltip(props: DTooltipProps, ref: React.ForwardedRef<DTooltipRef>) {
                 role="tooltip"
                 onClick={(e) => {
                   onClick?.(e);
-                  pOnClick?.();
+                  pOnClick?.(e);
                 }}
                 onMouseEnter={(e) => {
                   onMouseEnter?.(e);
-                  pOnMouseEnter?.();
+                  pOnMouseEnter?.(e);
                 }}
                 onMouseLeave={(e) => {
                   onMouseLeave?.(e);
-                  pOnMouseLeave?.();
+                  pOnMouseLeave?.(e);
                 }}
               >
                 {dArrow && <div className={`${dPrefix}tooltip__arrow`}></div>}
                 {dTitle}
               </div>
             )}
-            dContainer={containerEl}
+            dContainer={isFixed ? undefined : containerEl}
             dTrigger={dTrigger}
             dMouseEnterDelay={dMouseEnterDelay}
             dMouseLeaveDelay={dMouseLeaveDelay}
             dEscClosable={dEscClosable}
             onVisibleChange={changeVisible}
-            onUpdate={updatePosition}
+            onUpdatePosition={updatePosition}
           >
             {({ pOnClick, pOnFocus, pOnBlur, pOnMouseEnter, pOnMouseLeave, ...restPCProps }) =>
               React.cloneElement<React.HTMLAttributes<HTMLElement>>(children, {
@@ -304,23 +297,23 @@ function Tooltip(props: DTooltipProps, ref: React.ForwardedRef<DTooltipRef>) {
                 'aria-describedby': _id,
                 onClick: (e) => {
                   children.props.onClick?.(e);
-                  pOnClick?.();
+                  pOnClick?.(e);
                 },
                 onFocus: (e) => {
                   children.props.onFocus?.(e);
-                  pOnFocus?.();
+                  pOnFocus?.(e);
                 },
                 onBlur: (e) => {
                   children.props.onBlur?.(e);
-                  pOnBlur?.();
+                  pOnBlur?.(e);
                 },
                 onMouseEnter: (e) => {
                   children.props.onMouseEnter?.(e);
-                  pOnMouseEnter?.();
+                  pOnMouseEnter?.(e);
                 },
                 onMouseLeave: (e) => {
                   children.props.onMouseLeave?.(e);
-                  pOnMouseLeave?.();
+                  pOnMouseLeave?.(e);
                 },
               })
             }

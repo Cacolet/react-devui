@@ -85,7 +85,7 @@ ${'```'}
     return () => {
       asyncCapture.deleteGroup(asyncId);
     };
-  }, [asyncCapture, id, setActive]);
+  }, [asyncCapture, id]);
 
   return (
     <section

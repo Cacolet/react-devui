@@ -41,7 +41,7 @@ export interface DInputProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 
 }
 
 const { COMPONENT_NAME } = registerComponentMate({ COMPONENT_NAME: 'DInput' });
-export function DInput(props: DInputProps): JSX.Element | null {
+export function DInput(props: DInputProps) {
   const {
     dType,
     dMax,
@@ -62,6 +62,8 @@ export function DInput(props: DInputProps): JSX.Element | null {
     onModelChange,
 
     className,
+    onMouseDown,
+    onMouseUp,
     onClick,
     ...restProps
   } = useComponentConfig(COMPONENT_NAME, props);
@@ -124,6 +126,12 @@ export function DInput(props: DInputProps): JSX.Element | null {
     dataRef.current.clearTid?.();
   };
 
+  const preventBlur: React.MouseEventHandler = (e) => {
+    if (e.button === 0) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <DBaseSupport dCompose={{ active: isFocus, disabled: disabled }} dFormControl={dFormControl}>
       <div
@@ -134,6 +142,16 @@ export function DInput(props: DInputProps): JSX.Element | null {
           'is-disabled': disabled,
           'is-focus': isFocus,
         })}
+        onMouseDown={(e) => {
+          onMouseDown?.(e);
+
+          preventBlur(e);
+        }}
+        onMouseUp={(e) => {
+          onMouseUp?.(e);
+
+          preventBlur(e);
+        }}
         onClick={(e) => {
           onClick?.(e);
 
@@ -187,9 +205,7 @@ export function DInput(props: DInputProps): JSX.Element | null {
             className={getClassName(`${dPrefix}icon-button`, `${dPrefix}input__password`)}
             tabIndex={dPasswordToggle ? 0 : -1}
             aria-label={t('DInput', password ? 'Password is not visible' : 'Password is visible')}
-            onClick={(e) => {
-              e.stopPropagation();
-
+            onClick={() => {
               if (dPasswordToggle) {
                 setPassword(!password);
               }
@@ -220,9 +236,7 @@ export function DInput(props: DInputProps): JSX.Element | null {
               onTouchEnd={() => {
                 handleNumberMouseUp();
               }}
-              onClick={(e) => {
-                e.stopPropagation();
-
+              onClick={() => {
                 changeNumber();
               }}
             >
@@ -250,9 +264,7 @@ export function DInput(props: DInputProps): JSX.Element | null {
               onTouchEnd={() => {
                 handleNumberMouseUp();
               }}
-              onClick={(e) => {
-                e.stopPropagation();
-
+              onClick={() => {
                 changeNumber(false);
               }}
             >

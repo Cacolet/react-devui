@@ -29,7 +29,7 @@ export interface DPaginationProps extends Omit<React.HTMLAttributes<HTMLElement>
 }
 
 const { COMPONENT_NAME } = registerComponentMate({ COMPONENT_NAME: 'DPagination' });
-export function DPagination(props: DPaginationProps): JSX.Element | null {
+export function DPagination(props: DPaginationProps) {
   const {
     dActive,
     dTotal,

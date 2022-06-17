@@ -38,7 +38,7 @@ export interface DDrawerPropsWithPrivate extends DDrawerProps {
 
 const TTANSITION_DURING = 200;
 const { COMPONENT_NAME } = registerComponentMate({ COMPONENT_NAME: 'DDrawer' });
-export function DDrawer(props: DDrawerProps): JSX.Element | null {
+export function DDrawer(props: DDrawerProps) {
   const {
     children,
     dVisible,

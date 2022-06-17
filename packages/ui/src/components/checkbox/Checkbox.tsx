@@ -16,7 +16,7 @@ export interface DCheckboxProps extends React.HTMLAttributes<HTMLElement> {
 }
 
 const { COMPONENT_NAME } = registerComponentMate({ COMPONENT_NAME: 'DCheckbox' });
-export function DCheckbox(props: DCheckboxProps): JSX.Element | null {
+export function DCheckbox(props: DCheckboxProps) {
   const {
     children,
     dFormControl,

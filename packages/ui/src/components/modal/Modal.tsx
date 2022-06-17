@@ -35,7 +35,7 @@ export interface DModalProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const TTANSITION_DURING = 200;
 const { COMPONENT_NAME } = registerComponentMate({ COMPONENT_NAME: 'DModal' });
-export function DModal(props: DModalProps): JSX.Element | null {
+export function DModal(props: DModalProps) {
   const {
     children,
     dVisible,

@@ -23,7 +23,7 @@ export interface DRadioPropsWithPrivate extends DRadioProps {
 }
 
 const { COMPONENT_NAME } = registerComponentMate({ COMPONENT_NAME: 'DRadio' });
-export function DRadio(props: DRadioProps): JSX.Element | null {
+export function DRadio(props: DRadioProps) {
   const {
     children,
     dFormControl,

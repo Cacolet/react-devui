@@ -11,8 +11,9 @@ import { registerComponentMate, getClassName } from '../../utils';
 import { DBaseInput } from '../_base-input';
 import { DTooltip } from '../tooltip';
 
-export interface DSliderBaseProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
+export interface DSliderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
   dFormControl?: DFormControl;
+  dModel?: [number | [number, number], DUpdater<any>?];
   dMax?: number;
   dMin?: number;
   dStep?: number | null;
@@ -20,46 +21,20 @@ export interface DSliderBaseProps extends Omit<React.HTMLAttributes<HTMLDivEleme
   dMarks?: number | ({ value: number; label: React.ReactNode } | number)[];
   dVertical?: boolean;
   dReverse?: boolean;
-  dCustomTooltip?: (value: number) => React.ReactNode;
-}
-
-export interface DSliderSingleProps extends DSliderBaseProps {
-  dModel?: [number, DUpdater<number>?];
-  dRange?: false;
-  dInputProps?: React.InputHTMLAttributes<HTMLInputElement>;
-  dInputRef?: React.Ref<HTMLInputElement>;
-  dTooltipVisible?: boolean;
-  onModelChange?: (value: number) => void;
-}
-
-export interface DSliderRangeProps extends DSliderBaseProps {
-  dModel?: [[number, number], DUpdater<[number, number]>?];
-  dRange: true;
-  dRangeMinDistance?: number;
-  dRangeThumbDraggable?: boolean;
-  dInputProps?: [React.InputHTMLAttributes<HTMLInputElement>?, React.InputHTMLAttributes<HTMLInputElement>?];
-  dInputRef?: [React.Ref<HTMLInputElement>?, React.Ref<HTMLInputElement>?];
-  dTooltipVisible?: [boolean?, boolean?];
-  onModelChange?: (value: [number, number]) => void;
-}
-
-export interface DSliderProps extends DSliderBaseProps {
-  dFormControl?: DFormControl;
-  dModel?: [any, DUpdater<any>?];
-  dInputProps?: DSliderSingleProps['dInputProps'] | DSliderRangeProps['dInputProps'];
-  dInputRef?: DSliderSingleProps['dInputRef'] | DSliderRangeProps['dInputRef'];
-  dTooltipVisible?: DSliderSingleProps['dTooltipVisible'] | DSliderRangeProps['dTooltipVisible'];
   dRange?: boolean;
   dRangeMinDistance?: number;
   dRangeThumbDraggable?: boolean;
+  dTooltipVisible?: boolean | [boolean?, boolean?];
+  dInputProps?:
+    | React.InputHTMLAttributes<HTMLInputElement>
+    | [React.InputHTMLAttributes<HTMLInputElement>?, React.InputHTMLAttributes<HTMLInputElement>?];
+  dInputRef?: React.Ref<HTMLInputElement> | [React.Ref<HTMLInputElement>?, React.Ref<HTMLInputElement>?];
   onModelChange?: (value: any) => void;
+  dCustomTooltip?: (value: number) => React.ReactNode;
 }
 
 const { COMPONENT_NAME } = registerComponentMate({ COMPONENT_NAME: 'DSlider' });
-export function DSlider(props: DSliderSingleProps): JSX.Element | null;
-export function DSlider(props: DSliderRangeProps): JSX.Element | null;
-export function DSlider(props: DSliderProps): JSX.Element | null;
-export function DSlider(props: DSliderProps): JSX.Element | null {
+export function DSlider(props: DSliderProps) {
   const {
     dMax = 100,
     dMin = 0,

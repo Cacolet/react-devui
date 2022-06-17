@@ -14,7 +14,7 @@ export interface DBaseSupportProps {
   dFormControl?: DFormControl;
 }
 
-export function DBaseSupport(props: DBaseSupportProps): JSX.Element | null {
+export function DBaseSupport(props: DBaseSupportProps) {
   const { children, dCompose, dFormControl } = props;
 
   const composeContext = useContext(DComposeContext);

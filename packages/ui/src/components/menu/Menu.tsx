@@ -2,7 +2,8 @@ import type { DUpdater } from '../../hooks/common/useTwoWayBinding';
 import type { DNestedChildren, DId } from '../../utils/global';
 
 import { isNull, isUndefined, nth } from 'lodash';
-import React, { useId, useRef, useState } from 'react';
+import React, { useId, useImperativeHandle, useRef, useState } from 'react';
+import { Subject } from 'rxjs';
 
 import { usePrefixConfig, useComponentConfig, useTwoWayBinding } from '../../hooks';
 import { findNested, registerComponentMate, getClassName } from '../../utils';
@@ -13,6 +14,10 @@ import { DMenuGroup } from './MenuGroup';
 import { DMenuItem } from './MenuItem';
 import { DMenuSub } from './MenuSub';
 import { checkEnableOption, getOptions } from './utils';
+
+export interface DMenuRef {
+  updatePosition: () => void;
+}
 
 export type DMenuMode = 'horizontal' | 'vertical' | 'popup' | 'icon';
 
@@ -37,7 +42,7 @@ export interface DMenuProps<ID extends DId, T extends DMenuOption<ID>> extends O
 
 const TTANSITION_DURING = 200;
 const { COMPONENT_NAME } = registerComponentMate({ COMPONENT_NAME: 'DMenu' });
-export function DMenu<ID extends DId, T extends DMenuOption<ID>>(props: DMenuProps<ID, T>): JSX.Element | null {
+function Menu<ID extends DId, T extends DMenuOption<ID>>(props: DMenuProps<ID, T>, ref: React.ForwardedRef<DMenuRef>) {
   const {
     dOptions,
     dActive,
@@ -65,6 +70,8 @@ export function DMenu<ID extends DId, T extends DMenuOption<ID>>(props: DMenuPro
   //#region Ref
   const navRef = useRef<HTMLElement>(null);
   //#endregion
+
+  const [updatePosition$] = useState(() => new Subject<void>());
 
   const uniqueId = useId();
   const getOptionId = (id: ID) => `${dPrefix}menu-option-${id}-${uniqueId}`;
@@ -422,6 +429,7 @@ export function DMenu<ID extends DId, T extends DMenuOption<ID>>(props: DMenuPro
                     }
                   }
                 }}
+                updatePosition$={updatePosition$}
               >
                 {optionTitle}
               </DMenuSub>
@@ -433,6 +441,16 @@ export function DMenu<ID extends DId, T extends DMenuOption<ID>>(props: DMenuPro
 
     return getNodes(dOptions, 0, [], true);
   })();
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      updatePosition: () => {
+        updatePosition$.next();
+      },
+    }),
+    [updatePosition$]
+  );
 
   return (
     <DCollapseTransition
@@ -496,3 +514,7 @@ export function DMenu<ID extends DId, T extends DMenuOption<ID>>(props: DMenuPro
     </DCollapseTransition>
   );
 }
+
+export const DMenu: <ID extends DId, T extends DMenuOption<ID>>(
+  props: DMenuProps<ID, T> & { ref?: React.ForwardedRef<DMenuRef> }
+) => ReturnType<typeof Menu> = React.forwardRef(Menu) as any;

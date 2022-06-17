@@ -126,7 +126,7 @@
     transition: transform var(--#{$variable-prefix}animation-duration-base) linear,
       color var(--#{$variable-prefix}animation-duration-base) linear;
 
-    @include when(expand) {
+    @include when(arrow-up) {
       color: var(--#{$variable-prefix}color-primary);
       transform: rotate(180deg);
     }

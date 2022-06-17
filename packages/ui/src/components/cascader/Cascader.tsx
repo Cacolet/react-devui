@@ -9,9 +9,9 @@ import { isArray, isNull } from 'lodash';
 import React, { useCallback, useMemo, useState, useId, useRef } from 'react';
 import { Subject } from 'rxjs';
 
-import { usePrefixConfig, useComponentConfig, useTwoWayBinding, useGeneralContext, useEventCallback } from '../../hooks';
+import { usePrefixConfig, useComponentConfig, useTwoWayBinding, useGeneralContext } from '../../hooks';
 import { LoadingOutlined } from '../../icons';
-import { findNested, registerComponentMate, getClassName } from '../../utils';
+import { findNested, registerComponentMate, getClassName, getNoTransformSize, getVerticalSidePosition } from '../../utils';
 import { DSelectbox } from '../_selectbox';
 import { DDropdown } from '../dropdown';
 import { DTag } from '../tag';
@@ -20,6 +20,10 @@ import { SingleTreeNode, MultipleTreeNode } from '../tree';
 import { DList } from './List';
 import { DSearchList } from './SearchList';
 import { getText, TREE_NODE_KEY } from './utils';
+
+export interface DCascaderRef {
+  updatePosition: () => void;
+}
 
 export type DSearchOption<V extends DId, T> = DSelectOption<V> & { [TREE_NODE_KEY]: AbstractTreeNode<V, T> };
 
@@ -30,69 +34,50 @@ export interface DCascaderOption<V extends DId> {
   disabled?: boolean;
 }
 
-export interface DCascaderBaseProps<V extends DId, T extends DCascaderOption<V>>
+export interface DCascaderProps<V extends DId, T extends DCascaderOption<V>>
   extends React.HTMLAttributes<HTMLDivElement>,
     DExtendsSelectboxProps {
+  dModel?: [V | null | V[], DUpdater<any>?];
   dOptions: DNestedChildren<T>[];
   dVisible?: [boolean, DUpdater<boolean>?];
+  dMultiple?: boolean;
+  dOnlyLeafSelectable?: boolean;
   dCustomOption?: (option: DNestedChildren<T>) => React.ReactNode;
   dCustomSelected?: (select: DNestedChildren<T>) => string;
-  dClearable?: boolean;
-  dOnlyLeafSelectable?: boolean;
   dCustomSearch?: {
     filter?: (value: string, option: DNestedChildren<T>) => boolean;
     sort?: (a: DNestedChildren<T>, b: DNestedChildren<T>) => number;
   };
-  dAutoMaxWidth?: boolean;
   dPopupClassName?: string;
+  onModelChange?: (value: any, option: any) => void;
+  onSearch?: (value: string) => void;
   onFocusChange?: (value: V, option: DNestedChildren<T>) => void;
 }
 
-export interface DCascaderSingleProps<V extends DId, T extends DCascaderOption<V>> extends DCascaderBaseProps<V, T> {
-  dModel?: [V | null, DUpdater<V | null>?];
-  dMultiple?: false;
-  onModelChange?: (value: V | null, option: DNestedChildren<T> | null) => void;
-}
-
-export interface DCascaderMultipleProps<V extends DId, T extends DCascaderOption<V>> extends DCascaderBaseProps<V, T> {
-  dModel?: [V[], DUpdater<V[]>?];
-  dMultiple: true;
-  onModelChange?: (values: V[], options: DNestedChildren<T>[]) => void;
-}
-
-export interface DCascaderProps<V extends DId, T extends DCascaderOption<V>> extends DCascaderBaseProps<V, T> {
-  dModel?: [any, DUpdater<any>?];
-  dMultiple?: boolean;
-  onModelChange?: (value: any, option: any) => void;
-}
-
 const { COMPONENT_NAME } = registerComponentMate({ COMPONENT_NAME: 'DCascader' });
-export function DCascader<V extends DId, T extends DCascaderOption<V>>(props: DCascaderSingleProps<V, T>): JSX.Element | null;
-export function DCascader<V extends DId, T extends DCascaderOption<V>>(props: DCascaderMultipleProps<V, T>): JSX.Element | null;
-export function DCascader<V extends DId, T extends DCascaderOption<V>>(props: DCascaderProps<V, T>): JSX.Element | null;
-export function DCascader<V extends DId, T extends DCascaderOption<V>>(props: DCascaderProps<V, T>): JSX.Element | null {
+function Cascader<V extends DId, T extends DCascaderOption<V>>(props: DCascaderProps<V, T>, ref: React.ForwardedRef<DCascaderRef>) {
   const {
-    dOptions,
     dModel,
+    dOptions,
     dVisible,
+    dMultiple = false,
+    dOnlyLeafSelectable = true,
     dCustomOption,
     dCustomSelected,
-    dClearable = false,
-    dOnlyLeafSelectable = true,
     dCustomSearch,
-    dMultiple = false,
-    dAutoMaxWidth = true,
     dPopupClassName,
-    onFocusChange,
     onModelChange,
+    onSearch,
+    onFocusChange,
 
     dFormControl,
     dLoading,
+    dSearchable,
     dDisabled,
     dSize,
+    dInputProps,
     onVisibleChange,
     onClear,
-    onSearch,
 
     className,
     ...restProps
@@ -272,9 +257,6 @@ export function DCascader<V extends DId, T extends DCascaderOption<V>>(props: DC
     }
   };
 
-  const handleClose = useEventCallback(() => {
-    changeVisible(false);
-  });
   const [onKeyDown$] = useState(() => new Subject<React.KeyboardEvent<HTMLInputElement>>());
 
   const [selectedNode, suffixNode, selectedLabel] = useMemo(() => {
@@ -358,34 +340,57 @@ export function DCascader<V extends DId, T extends DCascaderOption<V>>(props: DC
   return (
     <DSelectbox
       {...restProps}
+      ref={ref}
       className={getClassName(className, `${dPrefix}cascader`)}
       dFormControl={dFormControl}
       dVisible={visible}
       dContent={hasSelected && selectedNode}
       dContentTitle={selectedLabel}
-      dDisabled={disabled}
       dSuffix={suffixNode}
-      dShowClear={dClearable && hasSelected}
-      dLoading={dLoading}
       dSize={size}
+      dLoading={dLoading}
+      dSearchable={dSearchable}
+      dDisabled={disabled}
       dInputProps={{
+        ...dInputProps,
+        value: searchValue,
         'aria-controls': listId,
         onKeyDown: (e) => {
+          dInputProps?.onKeyDown?.(e);
+
           if (visible) {
             onKeyDown$.next(e);
           }
         },
-      }}
-      dCustomWidth
-      dAutoMaxWidth={dAutoMaxWidth}
-      onClear={handleClear}
-      onSearch={(value) => {
-        onSearch?.(value);
+        onChange: (e) => {
+          dInputProps?.onChange?.(e);
 
-        setSearchValue(value);
+          if (dSearchable) {
+            setSearchValue(e.currentTarget.value);
+            onSearch?.(e.currentTarget.value);
+          }
+        },
+      }}
+      onUpdatePosition={(boxEl) => {
+        const popupEl = popupRef.current;
+        if (popupEl) {
+          const width = boxEl.getBoundingClientRect().width;
+          const { height } = getNoTransformSize(popupEl);
+          const { top, left, transformOrigin } = getVerticalSidePosition(boxEl, { width, height }, 'bottom-left', 8);
+
+          return {
+            position: {
+              top,
+              left,
+              maxWidth: window.innerWidth - left - 20,
+            },
+            transformOrigin,
+          };
+        }
       }}
       onVisibleChange={changeVisible}
       onFocusVisibleChange={setIsFocusVisible}
+      onClear={handleClear}
     >
       {({ sStyle, sOnMouseDown, sOnMouseUp, ...restSProps }) => (
         <div
@@ -393,12 +398,8 @@ export function DCascader<V extends DId, T extends DCascaderOption<V>>(props: DC
           ref={popupRef}
           className={getClassName(dPopupClassName, `${dPrefix}cascader__popup`)}
           style={sStyle}
-          onMouseDown={(e) => {
-            sOnMouseDown(e);
-          }}
-          onMouseUp={(e) => {
-            sOnMouseUp(e);
-          }}
+          onMouseDown={sOnMouseDown}
+          onMouseUp={sOnMouseUp}
         >
           {dLoading && (
             <div
@@ -421,7 +422,9 @@ export function DCascader<V extends DId, T extends DCascaderOption<V>>(props: DC
               dOnlyLeafSelectable={dOnlyLeafSelectable}
               dFocusVisible={isFocusVisible}
               onSelectedChange={changeSelectByCache}
-              onClose={handleClose}
+              onClose={() => {
+                changeVisible(false);
+              }}
               onFocusChange={(option) => {
                 onFocusChange?.(option.value, option[TREE_NODE_KEY].origin);
 
@@ -442,7 +445,9 @@ export function DCascader<V extends DId, T extends DCascaderOption<V>>(props: DC
               dFocusVisible={isFocusVisible}
               dRoot
               onSelectedChange={changeSelectByCache}
-              onClose={handleClose}
+              onClose={() => {
+                changeVisible(false);
+              }}
               onFocusChange={(node) => {
                 onFocusChange?.(node.id, node.origin);
 
@@ -456,3 +461,7 @@ export function DCascader<V extends DId, T extends DCascaderOption<V>>(props: DC
     </DSelectbox>
   );
 }
+
+export const DCascader: <V extends DId, T extends DCascaderOption<V>>(
+  props: DCascaderProps<V, T> & { ref?: React.ForwardedRef<DCascaderRef> }
+) => ReturnType<typeof Cascader> = React.forwardRef(Cascader) as any;
