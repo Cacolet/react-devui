@@ -22,11 +22,6 @@ import { DBaseDesign } from '../_base-design';
 import { DBaseInput } from '../_base-input';
 import { DTransition } from '../_transition';
 
-export type DExtendsTimeInputProps = Pick<
-  DTimeInputProps,
-  'dFormControl' | 'dPlacement' | 'dSize' | 'dRange' | 'dClearable' | 'dDisabled' | 'onClear' | 'onVisibleChange'
->;
-
 export interface DTimeInputRef {
   updatePosition: () => void;
 }
@@ -58,12 +53,12 @@ function TimeInput(props: DTimeInputProps, ref: React.ForwardedRef<DTimeInputRef
   const {
     children,
     dFormControl,
-    dVisible = false,
+    dVisible,
     dPlacement = 'bottom-left',
     dSize,
-    dRange = false,
-    dClearable = false,
-    dDisabled = false,
+    dRange,
+    dClearable,
+    dDisabled,
     dInputProps,
     dInputRef,
     onVisibleChange,

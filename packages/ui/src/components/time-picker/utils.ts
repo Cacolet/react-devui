@@ -1,12 +1,8 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-import dayjs from 'dayjs';
+import type { Dayjs, OpUnitType } from 'dayjs';
+
 import { isArray, isDate, isNull } from 'lodash';
 
-const customParseFormat = require('dayjs/plugin/customParseFormat');
-
-dayjs.extend(customParseFormat);
-
-export default dayjs;
+import { dayjs } from '../dayjs';
 
 export function deepCompareDate(a: Date | null | [Date, Date], b: Date | null | [Date, Date], format: string) {
   const isSame = (t1: Date, t2: Date) => dayjs(t1).format(format) === dayjs(t2).format(format);
@@ -23,16 +19,16 @@ export function deepCompareDate(a: Date | null | [Date, Date], b: Date | null | 
   return false;
 }
 
-function _orderTime(time: [dayjs.Dayjs, dayjs.Dayjs], order: 'ascend' | 'descend' | null): boolean {
-  if ((order === 'ascend' && time[0].isAfter(time[1])) || (order === 'descend' && time[0].isBefore(time[1]))) {
+export function orderDate(date: [Dayjs | Date, Dayjs | Date], order: 'ascend' | 'descend' | null, unit?: OpUnitType): boolean {
+  if ((order === 'ascend' && dayjs(date[0]).isAfter(date[1], unit)) || (order === 'descend' && dayjs(date[0]).isBefore(date[1], unit))) {
     return true;
   }
   return false;
 }
 
-export function orderTime(time: [Date, Date], order: 'ascend' | 'descend' | null): boolean {
+export function orderTime(time: [Dayjs | Date, Dayjs | Date], order: 'ascend' | 'descend' | null): boolean {
   const t1 = dayjs(time[0]).set('year', 2000).set('month', 0).set('date', 1);
   const t2 = dayjs(time[1]).set('year', 2000).set('month', 0).set('date', 1);
 
-  return _orderTime([t1, t2], order);
+  return orderDate([t1, t2], order);
 }

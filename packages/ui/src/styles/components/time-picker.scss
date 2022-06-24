@@ -47,17 +47,14 @@ $time-picker-cell-height: 28px;
     cursor: pointer;
     transition: background-color var(--#{$variable-prefix}animation-duration-base) linear;
 
+    @include utils-disabled;
+
     &:not(.is-active):hover {
       background-color: var(--#{$variable-prefix}background-color-hover);
     }
 
     @include when(active) {
       background-color: var(--#{$variable-prefix}background-color-primary);
-    }
-
-    @include when(disabled) {
-      color: var(--#{$variable-prefix}color-disabled);
-      pointer-events: none;
     }
   }
 }

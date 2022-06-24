@@ -4,7 +4,7 @@ import React, { useImperativeHandle, useRef } from 'react';
 
 import { useEventCallback, useForceUpdate, usePrefixConfig } from '../../hooks';
 import { getClassName, scrollTo } from '../../utils';
-import dayjs from './utils';
+import { dayjs } from '../dayjs';
 
 const H12 = freeze([
   '12',
@@ -29,11 +29,11 @@ export interface DTimePickerPanelProps {
   dTime: Date | null;
   dConfigOptions?: (unit: 'hour' | 'minute' | 'second', value: number) => { disabled?: boolean; hidden?: boolean };
   d12Hour?: boolean;
-  onCellClick?: (time: Date) => void;
+  onTimeChange?: (time: Date) => void;
 }
 
 function TimePickerPanel(props: DTimePickerPanelProps, ref: React.ForwardedRef<DTimePickerPanelRef>) {
-  const { dTime, dConfigOptions, d12Hour = false, onCellClick } = props;
+  const { dTime, dConfigOptions, d12Hour = false, onTimeChange } = props;
 
   //#region Context
   const dPrefix = usePrefixConfig();
@@ -54,8 +54,8 @@ function TimePickerPanel(props: DTimePickerPanelProps, ref: React.ForwardedRef<D
 
   const forceUpdate = useForceUpdate();
 
-  const time = dTime ? dayjs(dTime) : dayjs('00:00:00', 'HH:mm:ss');
-  const activeA = dTime ? (time.get('hour') < 12 ? 'AM' : 'PM') : dataRef.current.A;
+  const activeTime = dTime ? dayjs(dTime) : dayjs('00:00:00', 'HH:mm:ss');
+  const activeA = dTime ? (activeTime.get('hour') < 12 ? 'AM' : 'PM') : dataRef.current.A;
 
   const scrollToTime = useEventCallback((t: Date, unit?: 'hour' | 'minute' | 'second') => {
     if (unit === 'hour' || isUndefined(unit)) {
@@ -128,14 +128,14 @@ function TimePickerPanel(props: DTimePickerPanelProps, ref: React.ForwardedRef<D
             <li
               key={h}
               className={getClassName(`${dPrefix}time-picker-panel__cell`, {
-                'is-active': dTime && time.get('hour') === h,
+                'is-active': dTime && activeTime.get('hour') === h,
                 'is-disabled': disabled,
               })}
               data-h={h}
               onClick={() => {
-                const newT = time.set('hour', h).toDate();
+                const newT = activeTime.set('hour', h).toDate();
                 scrollToTime(newT, 'hour');
-                onCellClick?.(newT);
+                onTimeChange?.(newT);
               }}
             >
               {_h}
@@ -152,14 +152,14 @@ function TimePickerPanel(props: DTimePickerPanelProps, ref: React.ForwardedRef<D
             <li
               key={m}
               className={getClassName(`${dPrefix}time-picker-panel__cell`, {
-                'is-active': dTime && time.get('minute') === m,
+                'is-active': dTime && activeTime.get('minute') === m,
                 'is-disabled': disabled,
               })}
               data-m={m}
               onClick={() => {
-                const newT = time.set('minute', m).toDate();
+                const newT = activeTime.set('minute', m).toDate();
                 scrollToTime(newT, 'minute');
-                onCellClick?.(newT);
+                onTimeChange?.(newT);
               }}
             >
               {_m}
@@ -176,14 +176,14 @@ function TimePickerPanel(props: DTimePickerPanelProps, ref: React.ForwardedRef<D
             <li
               key={s}
               className={getClassName(`${dPrefix}time-picker-panel__cell`, {
-                'is-active': dTime && time.get('second') === s,
+                'is-active': dTime && activeTime.get('second') === s,
                 'is-disabled': disabled,
               })}
               data-s={s}
               onClick={() => {
-                const newT = time.set('second', s).toDate();
+                const newT = activeTime.set('second', s).toDate();
                 scrollToTime(newT, 'second');
-                onCellClick?.(newT);
+                onTimeChange?.(newT);
               }}
             >
               {_s}
@@ -202,8 +202,8 @@ function TimePickerPanel(props: DTimePickerPanelProps, ref: React.ForwardedRef<D
               onClick={() => {
                 if (dTime) {
                   if (activeA !== A) {
-                    const newT = time.set('hour', time.get('hour') + (A === 'AM' ? -12 : 12)).toDate();
-                    onCellClick?.(newT);
+                    const newT = activeTime.set('hour', activeTime.get('hour') + (A === 'AM' ? -12 : 12)).toDate();
+                    onTimeChange?.(newT);
                   }
                 } else {
                   dataRef.current.A = A;
